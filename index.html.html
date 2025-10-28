@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tính điểm UTE ✨</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      margin: 0;
+      padding: 0;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    header {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      padding: 20px;
+      color: white;
+      font-size: 1.8em;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 10px;
+    }
+
+    .semester {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .semester:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      color: #0066ff;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background: #f1f7ff;
+      color: #333;
+    }
+
+    input {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 6px;
+      width: 90%;
+      text-align: center;
+    }
+
+    button {
+      background: linear-gradient(45deg, #6a5af9, #00c2ff);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+
+    .delete-btn {
+      background: #ff6363;
+    }
+
+    .delete-btn:hover {
+      background: #e14e4e;
+    }
+
+    .result {
+      text-align: center;
+      font-size: 1.1em;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .rank {
+      padding: 4px 10px;
+      border-radius: 8px;
+      color: white;
+      margin-left: 5px;
+    }
+
+    .gioi { background: #00c853; }
+    .kha { background: #ffb300; }
+    .tb { background: #ff7043; }
+    .yeu { background: #e53935; }
+
+  </style>
+</head>
+<body>
+  <header>🎓 Tính điểm & Xếp loại UTE</header>
+  <div class="container" id="semesters"></div>
+
+  <script>
+    const semestersContainer = document.getElementById("semesters");
+
+    // Khởi tạo 8 học kỳ
+    for (let i = 1; i <= 8; i++) {
+      semestersContainer.innerHTML += `
+        <div class="semester" id="semester${i}">
+          <h2>Học kỳ ${i}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Môn học</th>
+                <th>Điểm</th>
+                <th>Tín chỉ</th>
+                <th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody id="subjects${i}"></tbody>
+          </table>
+          <div style="text-align:center;">
+            <button onclick="addSubject(${i})">+ Thêm môn</button>
+            <button onclick="calculateGPA(${i})">📊 Tính điểm TB</button>
+          </div>
+          <div class="result" id="result${i}"></div>
+        </div>
+      `;
+    }
+
+    // Thêm môn học
+    function addSubject(semester) {
+      const tbody = document.getElementById(`subjects${semester}`);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" placeholder="Tên môn" /></td>
+        <td><input type="number" min="0" max="10" step="0.1" placeholder="Điểm" /></td>
+        <td><input type="number" min="1" placeholder="Tín chỉ" /></td>
+        <td><button class="delete-btn" onclick="this.parentElement.parentElement.remove(); saveData()">🗑</button></td>
+      `;
+      tbody.appendChild(tr);
+      saveData();
+    }
+
+    // Lưu dữ liệu
+    function saveData() {
+      const data = [];
+      for (let i = 1; i <= 8; i++) {
+        const rows = document.querySelectorAll(`#subjects${i} tr`);
+        const semesterData = [];
+        rows.forEach(row => {
+          const inputs = row.querySelectorAll("input");
+          semesterData.push({
+            name: inputs[0].value,
+            grade: parseFloat(inputs[1].value),
+            credit: parseFloat(inputs[2].value)
+          });
+        });
+        data.push(semesterData);
+      }
+      localStorage.setItem("grades", JSON.stringify(data));
+    }
+
+    // Tính điểm trung bình
+    function calculateGPA(semester) {
+      const rows = document.querySelectorAll(`#subjects${semester} tr`);
+      let totalPoints = 0, totalCredits = 0;
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+        const grade = parseFloat(inputs[1].value);
+        const credit = parseFloat(inputs[2].value);
+        if (!isNaN(grade) && !isNaN(credit)) {
+          totalPoints += grade * credit;
+          totalCredits += credit;
+        }
+      });
+
+      let gpa = totalPoints / totalCredits || 0;
+      let rank = "";
+      let rankClass = "";
+      if (gpa >= 8.5) { rank = "Giỏi"; rankClass = "gioi"; }
+      else if (gpa >= 7.0) { rank = "Khá"; rankClass = "kha"; }
+      else if (gpa >= 5.0) { rank = "Trung bình"; rankClass = "tb"; }
+      else { rank = "Yếu"; rankClass = "yeu"; }
+
+      document.getElementById(`result${semester}`).innerHTML =
+        `🎯 Điểm trung bình: <b>${gpa.toFixed(2)}</b> 
+         <span class="rank ${rankClass}">${rank}</span>`;
+      saveData();
+    }
+
+    // Tải lại dữ liệu khi mở lại
+    window.onload = function() {
+      const saved = JSON.parse(localStorage.getItem("grades"));
+      if (saved) {
+        saved.forEach((semesterData, i) => {
+          const tbody = document.getElementById(`subjects${i + 1}`);
+          semesterData.forEach(sub => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><input type="text" value="${sub.name || ""}" /></td>
+              <td><input type="number" min="0" max="10" step="0.1" value="${sub.grade || ""}" /></td>
+              <td><input type="number" min="1" value="${sub.credit || ""}" /></td>
+              <td><button class="delete-btn" onclick="this.parentElement.parentElement.remove(); saveData()">🗑</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+      }
+    };
+  </script>
+</body>
+</html>
